@@ -7,17 +7,21 @@ use App\Models\Cargo;
 use App\Models\Employee;
 use App\Models\Horario;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PhpParser\Node\Stmt\Foreach_;
+
+use function PHPUnit\Framework\isEmpty;
 
 class EmployeeController extends Controller
 {
     public function getAll(){
         $employeerList=DB::table('employees')
             ->join('cargos', 'employees.cargo_id', '=', 'cargos.id')
+            ->where('employees.activo', '=', 1)
             ->select('employees.*', 'cargos.cargo')
-            ->get();
+            ->paginate(1);
         return view('employees', [
             'employees'=>$employeerList,
             'cargosSelect'=>Cargo::all()
@@ -25,6 +29,8 @@ class EmployeeController extends Controller
     }
 
     public function save(EmployeeRequest $req){
+
+        $page = $req->query('page', 1);
 
         $rutaImagen = null;
 
@@ -36,25 +42,20 @@ class EmployeeController extends Controller
             $rutaImagen = $req->file('imagen')->store('imagenes', 'public');
         }
 
-        if ($req->idEmployee!=null && $req->idEmployee>0) {
-            $employeeNew=Employee::find($req->idEmployee);
-            if ($rutaImagen==null) {
-                if ($employeeNew->url_image!='') {
-                    $rutaImagen=$employeeNew->url_image;
-                }else{
-                    $rutaImagen=$defaultURLImage;
-                }
-            }else{
-                if ($employeeNew->url_image!='' && $employeeNew->url_image!=$defaultURLImage) {
-                    Storage::disk('public')->delete($employeeNew->url_image);
-                }
+        $employeeNew = $req->idEmployee ? Employee::find($req->idEmployee) : new Employee();
+        
+        if ($rutaImagen) {
+            if ($employeeNew->url_image) {
+                Storage::disk('public')->delete($employeeNew->url_image);
             }
+            $employeeNew->url_image = $rutaImagen;
         }else{
-            $employeeNew=new Employee();
-            if ($rutaImagen==null) {
-                $rutaImagen=$defaultURLImage;
+            if (!$employeeNew->url_image) {
+                $employeeNew->url_image = $defaultURLImage;
             }
         }
+       
+   
 
         try{
             DB::beginTransaction();
@@ -63,20 +64,23 @@ class EmployeeController extends Controller
             $employeeNew->fecha_ingreso=$req->fechaIngreso;
             $employeeNew->fecha_nac=$req->fechaNacimiento;
             $employeeNew->activo=true;
-            $employeeNew->url_image=$rutaImagen;
             $employeeNew->cargo_id=$req->cargo;
 
             $employeeNew->save();
 
 
-            self::guardarHorarios($req, $employeeNew);
+            $this->guardarHorarios($req, $employeeNew);
 
 
             DB::commit();
 
+            $listadoActualizado=$this->getAllAux($page);
+            
+
             return response()->json([
                 'success'=>'Cambios realizados',
-                'employees'=>self::getAllAux()
+                'employees'=>$listadoActualizado,
+                'pagination'=>$this->renderPaginationView($listadoActualizado)
             ], 200);
 
         }catch (\Exception $e) {
@@ -85,16 +89,20 @@ class EmployeeController extends Controller
         }
     }
 
-    private function getAllAux(){
+    private function getAllAux($page){
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
         return DB::table('employees')
             ->join('cargos', 'employees.cargo_id', '=', 'cargos.id')
+            ->where('employees.activo', '=', 1)
             ->select('employees.*', 'cargos.cargo')
-            ->get();
+            ->paginate(1);
     }
 
 
     private function guardarHorarios(EmployeeRequest $req, Employee $employee){
-        if ($req->idEmployee!=null && $req->idEmployee>0) {
+        if ($req->idEmployee) {
 
             $employee->horarios()->delete();
 
@@ -134,6 +142,7 @@ class EmployeeController extends Controller
         $employeerList=DB::table('employees')
             ->join('horarios', 'employees.id', '=', 'employee_id')
             ->join('dias', 'horarios.dia_id', '=', 'dias.id')
+            ->where('horarios.employee_id', '=', $id)
             ->select('dias.dia', 'horarios.hora_inicio', 'horarios.hora_fin')
             ->get();
         return response()->json([
@@ -142,23 +151,80 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function delete($id){
+    public function delete($id, Request $req){
+        $page = $req->query('page', 1);
         try{
             DB::beginTransaction();
+            
             $employeeBD=Employee::find($id);
+
+            $employeeBD->activo=0;
+            /*
             if ($employeeBD->url_image != config('custom.default_image_url')) {
                 Storage::disk('public')->delete($employeeBD->url_image);
             }
-            $employeeBD->delete();
+            $employeeBD->delete();*/
+            $employeeBD->save();
             DB::commit();
+
+            $listadoActualizado=self::getAllAux($page);
+
+            if ($listadoActualizado->isEmpty() && $page>1) {
+                
+                $listadoActualizado=$this->getAllAux($page-1);
+            }
+             
+
             return response()->json([
-                'message'=>'Empleado eliminado con éxito',
-                'employees'=>self::getAllAux()
+                'message'=>'Empleado desactivado con éxito',
+                'employees'=>$listadoActualizado,
+                'pagination'=>$this->renderPaginationView($listadoActualizado)
             ], 200);
 
         }catch(\Exception $e){
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function filtrar(Request $req){
+        $page=!$req->input('page') ? 1 : $req->query('page');
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $termino = $req->input('q');
+        
+        $employeerList=DB::table('employees')
+        ->join('cargos', 'employees.cargo_id', '=', 'cargos.id')
+        ->where('employees.activo', '=', 1)
+        ->where('employees.nombre', 'LIKE', "%{$termino}%")
+        ->select('employees.*', 'cargos.cargo')
+        ->paginate(1);
+        if ($employeerList->total()===0) {
+            $employeerList=$this->getAllAux(1);
+            
+        }
+        
+        
+        return ($page===1) ?
+        response()->json([
+            'lista'=>$employeerList,
+            'pagination'=>$this->renderPaginationView($employeerList, '/employee/filter?q='.$termino)
+        ])
+        :
+        view('employees', [
+            'employees'=>$employeerList,
+            'cargosSelect'=>Cargo::all(),
+            'pagination'=>$this->renderPaginationView($employeerList, '/employee/filter?q='.$termino),
+            'termino'=>$termino
+        ]);
+    }
+
+
+    private function renderPaginationView($listado, $defaultPath='/'){
+        $listado->withPath($defaultPath); //colocar el path original de la ruta de la tabla o listado de registros
+        return view('partials.pagination', ['employees'=>$listado])->render();
+        
     }
 }

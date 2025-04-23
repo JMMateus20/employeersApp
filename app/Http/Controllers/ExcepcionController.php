@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ExcepcionRequest;
-use App\Models\Employee;
 use App\Models\Excepcion;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ExcepcionController extends Controller
@@ -36,6 +34,12 @@ class ExcepcionController extends Controller
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function verDetalle($id){
+        return response()->json([
+            'excepcion'=>Excepcion::find($id)
+        ]);
     }
 
     

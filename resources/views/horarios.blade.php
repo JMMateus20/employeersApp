@@ -26,12 +26,12 @@
         z-index: 1;
     }
 
-    .resaltado.excepcion {
+    .resaltado.clickeable {
         cursor: pointer;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .resaltado.excepcion:hover {
+    .resaltado.clickeable:hover {
         transform: scale(1.05) translateY(-2px);
         box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
     }
@@ -56,7 +56,7 @@
         <h4 style="margin-bottom: 0.5rem;">Guía:</h4>
         <div style="display: flex; align-items: center; margin-bottom: 0.25rem;">
             <div style="width: 20px; height: 20px; background-color: rgba(0, 128, 255, 0.5); border-radius: 4px; margin-right: 8px;"></div>
-            <span>Horario general</span>
+            <span>Horario ordinario</span>
         </div>
         <div style="display: flex; align-items: center;">
             <div style="width: 20px; height: 20px; background-color: rgba(255, 0, 0, 0.5); border-radius: 4px; margin-right: 8px;"></div>
@@ -93,7 +93,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Registrar excepción</h1>
                 <button type="button" class="btn-close" id="btnCloseModalFormExcepcion"></button>
             </div>
             
@@ -128,6 +128,37 @@
             
         </div>
     </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="modalVerExcepcion" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content shadow-lg border-0 rounded-4">
+      <div class="modal-header bg-primary text-white rounded-top-4">
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">Detalle de excepción</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+            <h6 class="fw-bold mb-1">📅 Fecha</h6>
+            <p class="form-control-plaintext" id="campoFecha"></p>
+        </div>
+        <div class="mb-3">
+            <h6 class="fw-bold mb-1">🕒 Hora de inicio</h6>
+            <p class="form-control-plaintext" id="campoHoraInicio"></p>
+        </div>
+        <div class="mb-3">
+            <h6 class="fw-bold mb-1">🕕 Hora de fin</h6>
+            <p class="form-control-plaintext" id="campoHoraFin"></p>
+        </div>
+        <div class="mb-3">
+            <h6 class="fw-bold mb-1">✏️ Motivo</h6>
+            <p class="form-control-plaintext" id="campoMotivo"></p>
+        </div>
+    </div>
+  </div>
 </div>
 
 
@@ -200,74 +231,6 @@
         });
     }
 
-    function setLinearGradient(minuto, color1, color2, defaultColor){
-       
-        let porcentajeResaltado='';
-
-        if (minuto>=0 && minuto<30) {
-            if (minuto===0) {
-                return defaultColor;
-            }
-            porcentajeResaltado='15%';
-            
-        }else if (minuto===30) {
-            porcentajeResaltado='50%';
-        }else {
-            porcentajeResaltado='75%';
-        }
-
-
-        return `linear-gradient(to bottom, ${color1} 0%, ${color1} ${porcentajeResaltado}, ${color2} ${porcentajeResaltado}, ${color2} 100%)`;
-            
-        
-            
-        
-    }
-
-    function dibujarColoreado(horario, fecha, defaultColor){
-        const horaInicio=parseInt(horario.inicio.split(':')[0], 10);
-        const minutoInicio=parseInt(horario.inicio.split(':')[1], 10);
-        
-        const horaFin=parseInt(horario.fin.split(':')[0], 10);
-        const minutoFin=parseInt(horario.fin.split(':')[1], 10);
-        for (let h = horaInicio; h <= horaFin; h++) {
-            const celda = document.getElementById(`celda-${fecha.fecha}-${h}`);
-            if (celda) {
-                
-                let gradiente = defaultColor;
-                let horaMostrada='';
-                if (h==horaInicio) {
-                    gradiente= setLinearGradient(minutoInicio, 'transparent', defaultColor, defaultColor);
-                    horaMostrada=horario.inicio;
-                }
-
-                if (h==horaFin) {
-                    if (minutoFin==0) {
-                        continue;
-                    }
-                    gradiente=setLinearGradient(minutoFin, defaultColor, 'transparent', defaultColor);
-                    horaMostrada=horario.fin
-                }
-
-                
-
-                const bloque = document.createElement('div');
-                bloque.style.background = gradiente;
-                bloque.classList.add('resaltado');
-                bloque.style.top = '2px';
-                bloque.style.bottom = '2px';
-                bloque.textContent = horaMostrada;
-
-                //verificar si es excepcion para poder dar click sobre ella
-                if (defaultColor === 'rgba(255, 0, 0, 0.5)') {
-                    bloque.classList.add('excepcion');
-                    bloque.dataset.id = horario.id;
-                }
-
-                celda.appendChild(bloque);
-            }
-        }
-    }
 
     function abrirModalFormExcepcion(modalExcepcionInstance){
         modalExcepcionInstance.show();
@@ -370,6 +333,29 @@
         resaltarExcepciones();
     }
 
+    async function verDetalle(id, modalDetalleInstance){
+        try{
+            const response=await fetch(`/excepciones/find/${id}`);
+
+            const responseBody=await response.json();
+
+            console.log(responseBody);
+
+            if (response.ok) {
+                document.getElementById("campoFecha").textContent = responseBody.excepcion.fecha;
+                document.getElementById("campoHoraInicio").textContent = responseBody.excepcion.hora_inicio;
+                document.getElementById("campoHoraFin").textContent = responseBody.excepcion.hora_fin;
+                document.getElementById("campoMotivo").textContent = responseBody.excepcion.motivo;
+                
+                modalDetalleInstance.show();
+            }
+
+
+        }catch(error){
+            console.log(error);
+        }
+    }
+
     
 
     
@@ -379,15 +365,18 @@
         const modalExcepcionInstance = new bootstrap.Modal(modalExcepcion);
         const formExcepcion=document.getElementById('formExcepcion');
 
+        const modalDetalle=document.getElementById('modalVerExcepcion');
+        const modalDetalleInstance = new bootstrap.Modal(modalDetalle);
+
 
         resaltarHorarios();
         resaltarExcepciones();
 
         document.getElementById('contenedorCeldas').addEventListener('click', function (e) {
-            const bloqueExcepcion = e.target.closest('.excepcion');
+            const bloqueExcepcion = e.target.closest('.clickeable');
             if (bloqueExcepcion) {
-                console.log("ID de excepción:", bloqueExcepcion.dataset.id);
                 
+                verDetalle(bloqueExcepcion.dataset.id, modalDetalleInstance);
             }
         });
 

@@ -37,5 +37,9 @@ class Employee extends Model
         return $this->hasMany(Excepcion::class, 'employee_id', 'id');
     }
 
+    public function eventos(){
+        return $this->belongsToMany(Evento::class, 'employee_eventos', 'employee_id', 'evento_id');
+    }
+
 
 }

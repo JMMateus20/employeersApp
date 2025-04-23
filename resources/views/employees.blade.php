@@ -3,10 +3,16 @@
 
     <h1 class="text-center mb-4">Listado de empleados</h1>
 
-    <button type="button" class="btn btn-primary" id="btnMostrarModalForm">
-        Registrar empleado
-    </button>
+    <div class="d-flex justify-content-end mb-3">
+        <button type="button" class="btn btn-primary" id="btnMostrarModalForm">
+            Registrar empleado
+        </button>
 
+    </div>
+
+    <div class="d-flex justify-content-end mb-3">
+        <input type="text" id="busquedaEmpleado" class="form-control w-25" placeholder="Buscar por nombre..." value="{{ isset($termino) ? $termino : '' }}">
+    </div>
     <table id="empleadosTable" class="table">
         <thead>
         <tr>
@@ -31,13 +37,24 @@
                         <a href="{{ route('horarios.index', $employee->id) }}" class="btn btn-primary btn-sm me-2 rounded-circle">
                             <i class="fa-solid fa-calendar"></i>
                         </a>
+                        <button data-id="{{ $employee->id }}" class="btnVer btn btn-primary btn-sm me-2 rounded-circle"><i class="fa-solid fa-eye"></i></button>
                     </td>
                     <!--<img src="{{ asset('storage/' . $employee->url_image) }}" alt="Imagen subida" class="img-fluid rounded shadow" style="max-width: 300px;">-->
                 </tr>
                 @endforeach
             @endif
         </tbody>
+        
     </table>
+    <div id="paginator">
+        
+        <div class="d-flex justify-content-center">
+            {{ $employees->links() }}
+        </div>
+            
+       
+
+    </div>
 
    
     
@@ -53,44 +70,52 @@
                 <div class="modal-body">
                     <input type="number" id="idEmployee" name="idEmployee" hidden>
                 
-                    <!-- Nombre -->
-                    <div class="mb-3">
-                    <label for="nombre" class="form-label">Nombre completo</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Juan Pérez" required>
+                    <div class="row">
+                        <!-- Nombre -->
+                        <div class="mb-3 col-md-6">
+                            <label for="nombre" class="form-label">Nombre completo</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Juan Pérez" required>
+                        </div>
+            
+                        <!-- Correo -->
+                        <div class="mb-3 col-md-6">
+                            <label for="correo" class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" id="correo" name="correo" placeholder="correo@ejemplo.com" required>
+                        </div>
+                    
+                    </div>
+                    <div class="row">
+                        <!-- Fecha de ingreso -->
+                        <div class="mb-3 col-md-6">
+                            <label for="fechaIngreso" class="form-label">Fecha de ingreso</label>
+                            <input type="date" class="form-control" id="fechaIngreso" name="fechaIngreso" required>
+                        </div>
+            
+                        <!-- Fecha de nacimiento -->
+                        <div class="mb-3 col-md-6">
+                            <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
+                            <input type="date" class="form-control" id="fechaNacimiento" name="fechaNacimiento" required>
+                        </div>
+                    
                     </div>
         
-                    <!-- Correo -->
-                    <div class="mb-3">
-                    <label for="correo" class="form-label">Correo electrónico</label>
-                    <input type="email" class="form-control" id="correo" name="correo" placeholder="correo@ejemplo.com" required>
-                    </div>
-        
-                    <!-- Fecha de ingreso -->
-                    <div class="mb-3">
-                    <label for="fechaIngreso" class="form-label">Fecha de ingreso</label>
-                    <input type="date" class="form-control" id="fechaIngreso" name="fechaIngreso" required>
-                    </div>
-        
-                    <!-- Fecha de nacimiento -->
-                    <div class="mb-3">
-                    <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
-                    <input type="date" class="form-control" id="fechaNacimiento" name="fechaNacimiento" required>
-                    </div>
-        
-                    <!-- Campo (Select) -->
-                    <div class="mb-3">
-                        <label for="campo" class="form-label">Cargo</label>
-                        <select class="form-select" id="cargo" name="cargo" required>
-                            @foreach ($cargosSelect as $c)
-                                <option value="{{ $c->id }}">{{ $c->cargo }}</option>
-                            @endforeach
-                            
-                        </select>
-                    </div>
+                    <div class="row">
 
-                    <div class="mb-3">
-                        <label for="imagen" class="form-label">Foto de perfil</label>
-                        <input type="file" class="form-control" id="imagen" name="imagen" required>
+                        <!-- Campo (Select) -->
+                        <div class="mb-3 col-md-6">
+                            <label for="campo" class="form-label">Cargo</label>
+                            <select class="form-select" id="cargo" name="cargo" required>
+                                @foreach ($cargosSelect as $c)
+                                    <option value="{{ $c->id }}">{{ $c->cargo }}</option>
+                                @endforeach
+                                
+                            </select>
+                        </div>
+    
+                        <div class="mb-3 col-md-6">
+                            <label for="imagen" class="form-label">Foto de perfil</label>
+                            <input type="file" class="form-control" id="imagen" name="imagen" required>
+                        </div>
                     </div>
 
                     
@@ -131,6 +156,54 @@
         </div>
     </div>
 
+    
+  
+  <!-- Modal -->
+  <div class="modal fade" id="modalDetalleEmployeer" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="staticBackdropLabel">Detalle empleado</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="text-center mb-4">
+                <img id="empleadoImagen" src="" alt="Foto del empleado" class="rounded-circle shadow" style="width: 150px; height: 150px; object-fit: cover;">
+            </div>
+        
+            <div class="container">
+                <div class="row mb-3">
+                    <div class="col-5 fw-bold">Nombre:</div>
+                    <div class="col-7" id="empleadoNombre"></div>
+                </div>
+            
+                <div class="row mb-3">
+                    <div class="col-5 fw-bold">Correo:</div>
+                    <div class="col-7" id="empleadoCorreo"></div>
+                </div>
+            
+                <div class="row mb-3">
+                    <div class="col-5 fw-bold">Fecha de ingreso:</div>
+                    <div class="col-7" id="empleadoIngreso"></div>
+                </div>
+            
+                <div class="row mb-3">
+                    <div class="col-5 fw-bold">Fecha de nacimiento:</div>
+                    <div class="col-7" id="empleadoNacimiento"></div>
+                </div>
+            
+                <div class="row mb-3">
+                    <div class="col-5 fw-bold">Estado:</div>
+                    <div class="col-7">
+                    <span id="empleadoEstado" class="badge bg-success"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 @endsection
 
 <script>
@@ -142,6 +215,10 @@
         const modalInstance = new bootstrap.Modal(modalEmployee);
 
         const form=document.getElementById('formEmployee');
+
+        const modalDetalle=document.getElementById('modalDetalleEmployeer');
+
+        const modalDetalleInstance=new bootstrap.Modal(modalDetalle);
 
         document.getElementById('btnMostrarModalForm').addEventListener('click', () => {
             showModalRegistrar(modalInstance);
@@ -167,6 +244,12 @@
                 const id= btn.getAttribute('data-id');
                 deleteEmployeer(id);
             }
+
+            if (e.target.closest('.btnVer')) {
+                const btn=e.target.closest('.btnVer');
+                const id=btn.getAttribute('data-id');
+                verDetalle(id, modalDetalleInstance);
+            }
         });
 
         document.addEventListener('click', function(e) {
@@ -177,6 +260,21 @@
                     
                     e.target.closest('.horario-item').remove();
                 }
+            }
+        });
+
+        const inputFiltro=document.getElementById('busquedaEmpleado');
+        inputFiltro.addEventListener('input', async function () {
+            
+            const cadena=inputFiltro.value;
+            try{
+                const response=await fetch(`/employee/filter?q=${encodeURIComponent(cadena)}`);
+                const responseBody=await response.json();
+                generateTable(responseBody.lista);
+                updatePaginationLinks(responseBody.pagination);
+
+            }catch(error){
+                console.log(error);
             }
         });
         
@@ -252,11 +350,14 @@
         });
 
         
+       const page = getCurrentPage();
+
+       console.log('pagina=' + page);
 
         const formData=new FormData(form);
 
         try{
-            const response=await fetch('/employees/save', {
+            const response=await fetch(`/employees/save?page=${page}`, {
                 method: "POST",
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -292,7 +393,10 @@
                     confirmButtonText: 'Aceptar'
                 });
                 generateTable(responseBody.employees);
-                modalInstance.hide();
+
+                updatePaginationLinks(responseBody.pagination);
+
+                cerrarModal(modalInstance, form)
             }
         }catch(error){
             console.log(error);
@@ -302,10 +406,12 @@
     }
 
     function generateTable(employees){
+        const employeesData=employees.data;
+
         const tbody = document.querySelector('#empleadosTable tbody');
         tbody.innerHTML = '';
 
-        employees.forEach((employee, index) => {
+        employeesData.forEach((employee, index) => {
             const tr = document.createElement('tr');
             tr.classList.add('animate__animated', 'animate__fadeIn');
 
@@ -320,6 +426,7 @@
                     <a href="/horarios/get/${ employee.id }" class="btn btn-primary btn-sm me-2 rounded-circle">
                         <i class="fa-solid fa-calendar"></i>
                     </a>
+                    <button data-id="${ employee.id }" class="btnVer btn btn-primary btn-sm me-2 rounded-circle"><i class="fa-solid fa-eye"></i></button>
                 </td>
                 `;
                 tbody.appendChild(tr);
@@ -327,7 +434,7 @@
         });
     }
 
-    //<img src="storage/${employee.url_image}" alt="Imagen subida" class="img-fluid rounded shadow" style="max-width: 300px;">
+    //<img src="/storage/${employee.url_image}" alt="Imagen subida" class="img-fluid rounded shadow" style="max-width: 300px;">
     async function findEmployee(id, modalInstance){
         
         try{
@@ -426,8 +533,9 @@
             confirmButtonText: "Confirmar"
         });
         if (result.isConfirmed) {
+            const page = getCurrentPage();
             try{
-                const response=await fetch(`/employee/delete/${id}`, {
+                const response=await fetch(`/employee/delete/${id}?page=${page}`, {
                     method: 'DELETE',
                     headers: {
                         'Accept': 'application/json',
@@ -447,6 +555,10 @@
                         icon: "success"
                     });
                     generateTable(responseBody.employees);
+                    const nuevaPagina=responseBody.employees.current_page;
+
+                    updatePaginationLinks(responseBody.pagination);
+                    history.pushState(null, '', `?page=${nuevaPagina}`);
                 }
 
             }catch(error){
@@ -455,6 +567,39 @@
 
         }
             
+    }
+
+    async function verDetalle(id, modalDetalleInstance){
+        try{
+            const response=await fetch(`/employee/find/${id}`);
+
+            const responseBody=await response.json();
+
+            console.log(responseBody);
+
+            document.getElementById('empleadoImagen').src=`/storage/${responseBody.employee.url_image}`;
+            document.getElementById('empleadoNombre').textContent=responseBody.employee.nombre;
+            document.getElementById('empleadoCorreo').textContent=responseBody.employee.correo;
+            document.getElementById('empleadoIngreso').textContent=responseBody.employee.fecha_ingreso;
+            document.getElementById('empleadoNacimiento').textContent=responseBody.employee.fecha_nac;
+            document.getElementById('empleadoEstado').textContent=(responseBody.employee.activo == 1)? 'Activo':'Inactivo';
+
+            modalDetalleInstance.show();
+
+        }catch(error){
+            console.log(error);
+        }
+    }
+
+    function getCurrentPage(){
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('page') || 1;
+        
+    }
+
+
+    function updatePaginationLinks(pagination){
+        document.querySelector('#paginator').innerHTML = pagination;
     }
 </script>
 

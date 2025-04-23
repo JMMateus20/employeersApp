@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Employeesapp</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    @vite('resources/js/app.js')
     @yield('styles')
 </head>
 <body class="bg-light">
@@ -14,7 +15,7 @@
             
                 
             
-            <a class="navbar-brand fw-bold d-flex align-items-center">EmployeesApp!</a>
+            <a class="navbar-brand fw-bold d-flex align-items-center">EmployeersApp!</a>
             
     
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -25,13 +26,13 @@
                 <ul class="navbar-nav ms-auto">
                     
                     <li class="nav-item">
-                        <a class="nav-link">📌 Eventos</a>
+                        <a class="nav-link" href="{{ route('eventos.index') }}">📌 Eventos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link">👥 Empleados</a>
+                        <a class="nav-link" href="{{ route('employeers.index') }}">👥 Empleados</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link">🎂 Cumpleaños</a>
+                        <a class="nav-link" href="{{ route('cumpleanios.index') }}">🎂 Cumpleaños</a>
                     </li>
     
                     
@@ -48,5 +49,6 @@
     <script src="https://kit.fontawesome.com/bba2f87e3e.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isoWeek.min.js"></script>
+    
 </body>
 </html>
