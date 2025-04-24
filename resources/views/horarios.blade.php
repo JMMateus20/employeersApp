@@ -165,33 +165,7 @@
 @endsection
 
 <script>
-    function obtenerLunes(fecha) {
-        const dia = fecha.getDay(); // 0 = domingo, 1 = lunes, ..., 6 = sábado
-        const diferencia = dia === 0 ? -6 : 1 - dia;
-        const lunes = new Date(fecha);
-        lunes.setDate(fecha.getDate() + diferencia);
-        return lunes;
-    }
-
-    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sabado'];
-
-    let fechasSemana = [];
-    let lunes = obtenerLunes(new Date());
-
-    for (let i = 0; i < 6; i++) {
-        const fecha = new Date(lunes);
-        fecha.setDate(lunes.getDate() + i);
-
-        const año = fecha.getFullYear();
-        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-        const dia = String(fecha.getDate()).padStart(2, '0');
-        const fechaFormateada = `${año}-${mes}-${dia}`;
-
-        fechasSemana.push({
-            nombre: dias[i],
-            fecha: fechaFormateada
-        });
-    }
+    
 
 
     const horarios=@json($horarios);
@@ -300,7 +274,10 @@
                     fecha: responseBody.excepcion.fecha,
                     motivo: responseBody.excepcion.motivo
                 };
-                redibujarExcepciones(excepcionNew);
+                excepciones.push(excepcionNew);
+                limpiarCalendario();
+                resaltarHorarios();
+                resaltarExcepciones();
                 Swal.fire({
                     icon: 'success',
                     title: 'Exito!',
@@ -319,19 +296,7 @@
 
     }
 
-    function redibujarExcepciones(excepcion) {
-        excepciones.push(excepcion);
-        fechasSemana.forEach(fecha => {
-            for (let h = 6; h <= 22; h++) {
-                const celda = document.getElementById(`celda-${fecha.fecha}-${h}`);
-                if (celda) {
-                    celda.innerHTML = '';
-                }
-            }
-        });
-        resaltarHorarios();
-        resaltarExcepciones();
-    }
+    
 
     async function verDetalle(id, modalDetalleInstance){
         try{

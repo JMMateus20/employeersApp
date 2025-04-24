@@ -199,6 +199,8 @@
                     </div>
                 </div>
             </div>
+
+            <div id="empleadoEventos" class="mt-4"></div>
         </div>
       </div>
     </div>
@@ -572,7 +574,7 @@
     async function verDetalle(id, modalDetalleInstance){
         try{
             const response=await fetch(`/employee/find/${id}`);
-
+            
             const responseBody=await response.json();
 
             console.log(responseBody);
@@ -583,9 +585,74 @@
             document.getElementById('empleadoIngreso').textContent=responseBody.employee.fecha_ingreso;
             document.getElementById('empleadoNacimiento').textContent=responseBody.employee.fecha_nac;
             document.getElementById('empleadoEstado').textContent=(responseBody.employee.activo == 1)? 'Activo':'Inactivo';
+            
+            const contenedorEventos=document.getElementById('empleadoEventos');
+            contenedorEventos.innerHTML='';
 
+            const titulo = document.createElement('h5');
+            titulo.textContent = 'Eventos asignados';
+            titulo.classList.add('mb-3');
+            titulo.classList.add('text-center');
+
+            contenedorEventos.appendChild(titulo);
+
+            if (responseBody.eventos.length === 0) {
+                const sinEventos = document.createElement('p');
+                sinEventos.textContent = 'Este empleado no tiene eventos asignados.';
+                sinEventos.classList.add('text-muted', 'fst-italic');
+                contenedorEventos.appendChild(sinEventos);
+                modalDetalleInstance.show();
+
+                return;
+            }
+
+            const encabezado = document.createElement('div');
+            encabezado.classList.add('d-flex', 'justify-content-between', 'fw-bold', 'mb-1', 'px-2');
+            encabezado.innerHTML = `
+                <span>Evento</span>
+                <span>Fecha</span>
+                <span>Hora inicio</span>
+                <span>Hora fin</span>
+            `;
+            contenedorEventos.appendChild(encabezado);
+
+            const lista = document.createElement('ul');
+            lista.classList.add('list-group');
+
+            responseBody.eventos.forEach(evento => {
+                const item = document.createElement('li');
+                item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+
+                
+
+                contenedorEventos.appendChild(encabezado);
+                const titulo = document.createElement('span');
+                titulo.textContent = evento.titulo;
+
+                const fecha = document.createElement('span');
+                fecha.classList.add('badge', 'bg-primary', 'rounded-pill');
+                fecha.textContent = evento.fecha;
+
+                const horaInicio = document.createElement('span');
+                horaInicio.classList.add('badge', 'bg-success', 'rounded-pill');
+                horaInicio.textContent = evento.hora_inicio;
+
+                const horaFin = document.createElement('span');
+                horaFin.classList.add('badge', 'bg-warning', 'rounded-pill');
+                horaFin.textContent = evento.hora_fin;
+
+                item.appendChild(titulo);
+                item.appendChild(fecha);
+                item.appendChild(horaInicio);
+                item.appendChild(horaFin);
+
+                lista.appendChild(item);
+            });
+
+            contenedorEventos.appendChild(lista);
+            
             modalDetalleInstance.show();
-
+            
         }catch(error){
             console.log(error);
         }

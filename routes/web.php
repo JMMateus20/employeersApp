@@ -12,15 +12,17 @@ Route::get('/', function () {
 });
 
 Route::get('/', [EmployeeController::class, 'getAll'])->name('employeers.index');
+
 Route::post('/employees/save',[EmployeeController::class, 'save']);
 Route::get('/employee/find/{id}', [EmployeeController::class, 'find']);
 Route::delete('/employee/delete/{id}', [EmployeeController::class, 'delete']);
 Route::get('/employee/filter', [EmployeeController::class, 'filtrar']);
 
+
 Route::get('/horarios/get/{id}', [HorarioController::class, 'getHorario'])->name('horarios.index');
 
-Route::post('/excepciones/save', [ExcepcionController::class, 'saveExcepcion']);
 
+Route::post('/excepciones/save', [ExcepcionController::class, 'saveExcepcion']);
 Route::get('/excepciones/find/{id}', [ExcepcionController::class, 'verDetalle']);
 
 
@@ -29,3 +31,5 @@ Route::get('/cumpleanios/getCumples/{mes}', [CumpleaniosController::class, 'getC
 
 
 Route::get('/eventos/index', [EventoController::class, 'index'])->name('eventos.index');
+Route::POST('/eventos/save', [EventoController::class, 'save']);
+Route::get('/eventos/find/{id}', [EventoController::class, 'find']);

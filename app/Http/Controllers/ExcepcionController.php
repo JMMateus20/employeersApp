@@ -39,7 +39,7 @@ class ExcepcionController extends Controller
     public function verDetalle($id){
         return response()->json([
             'excepcion'=>Excepcion::find($id)
-        ]);
+        ], 200);
     }
 
     

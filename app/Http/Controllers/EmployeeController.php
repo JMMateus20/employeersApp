@@ -147,8 +147,9 @@ class EmployeeController extends Controller
             ->get();
         return response()->json([
             'employee'=>$employeeBD,
-            'horarios'=>$employeerList
-        ]);
+            'horarios'=>$employeerList,
+            'eventos'=>$employeeBD->eventos
+        ], 200);
     }
 
     public function delete($id, Request $req){

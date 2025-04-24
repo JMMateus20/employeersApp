@@ -1,3 +1,32 @@
+function obtenerLunes(fecha) {
+    const dia = fecha.getDay(); // 0 = domingo, 1 = lunes, ..., 6 = sábado
+    const diferencia = dia === 0 ? -6 : 1 - dia;
+    const lunes = new Date(fecha);
+    lunes.setDate(fecha.getDate() + diferencia);
+    return lunes;
+}
+
+const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sabado'];
+
+let fechasSemana = [];
+let lunes = obtenerLunes(new Date());
+
+for (let i = 0; i < 6; i++) {
+    const fecha = new Date(lunes);
+    fecha.setDate(lunes.getDate() + i);
+
+    const año = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const fechaFormateada = `${año}-${mes}-${dia}`;
+
+    fechasSemana.push({
+        nombre: dias[i],
+        fecha: fechaFormateada
+    });
+}
+
+
 function setLinearGradient(minuto, color1, color2, defaultColor){
        
     let porcentajeResaltado='';
@@ -67,4 +96,19 @@ function dibujarColoreado(horario, fecha, defaultColor){
     }
 }
 
+function limpiarCalendario() {
+        
+    fechasSemana.forEach(fecha => {
+        for (let h = 6; h <= 22; h++) {
+            const celda = document.getElementById(`celda-${fecha.fecha}-${h}`);
+            if (celda) {
+                celda.innerHTML = '';
+            }
+        }
+    });
+    
+}
+
 window.dibujarColoreado = dibujarColoreado;
+window.limpiarCalendario = limpiarCalendario;
+window.fechasSemana=fechasSemana;

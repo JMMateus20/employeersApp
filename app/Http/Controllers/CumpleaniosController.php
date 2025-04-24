@@ -20,7 +20,7 @@ class CumpleaniosController extends Controller
 
     
     public function getCumplesPorMes($mes){
-        return response()->json(['registros'=>self::findCumplesByMes($mes)]);
+        return response()->json(['registros'=>self::findCumplesByMes($mes)], 200);
     }
     
     private function findCumplesByMes($mes){

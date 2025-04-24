@@ -41,5 +41,9 @@ class Employee extends Model
         return $this->belongsToMany(Evento::class, 'employee_eventos', 'employee_id', 'evento_id');
     }
 
+    public function cargo(){
+        return $this->belongsTo(Cargo::class, 'cargo_id', 'id');
+    }
+
 
 }
