@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Mail\CumpleaniosMail;
 use App\Mail\FelicitacionMail;
 use App\Models\Employee;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,8 @@ class EnviarCorreoCumpleanieros extends Command
      */
     public function handle()
     {
-        $fechaActual=now();
+        $fechaActual=Carbon::now('America/Bogota');
+        
         $empleadosCumplenHoy=collect(DB::select('SELECT * FROM employees WHERE DAY(fecha_nac)=? AND MONTH(fecha_nac)=?', [$fechaActual->day, $fechaActual->month]));
         Log::info("Entro al command");
         if (empty($empleadosCumplenHoy)) {
