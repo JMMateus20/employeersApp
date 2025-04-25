@@ -24,6 +24,11 @@ class EventoController extends Controller
     }
 
     public function save(EventoRequest $req){
+        $existentes=DB::select('SELECT * FROM eventos WHERE fecha = ? AND hora_inicio = ? AND hora_fin = ?', [$req->fecha, $req->hora_inicio, $req->hora_fin]);
+
+        if (!empty($existentes)) {
+            return response()->json(['errorMessage'=>'Ya existe un evento registrado en este horario'], 400);
+        }
         try{
             DB::beginTransaction();
             $eventoNew=Evento::create([
@@ -53,5 +58,24 @@ class EventoController extends Controller
             'evento'=>$eventoBD,
             'asistentes'=>$eventoBD->asistentes
         ], 200);
+    }
+
+    public function delete($id){
+        $eventoBD=Evento::find($id);
+        try{
+            DB::beginTransaction();
+            $eventoBD->asistentes()->detach();
+            $eventoBD->delete();
+            DB::commit();
+            return response()->json([
+                'message'=>'Evento eliminado con éxito'
+            ], 200);
+        }catch(\Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'error'=>$e->getMessage()
+            ], 500);
+        }
+        
     }
 }

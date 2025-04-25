@@ -60,12 +60,12 @@ function dibujarColoreado(horario, fecha, defaultColor){
     for (let h = horaInicio; h <= horaFin; h++) {
         const celda = document.getElementById(`celda-${fecha.fecha}-${h}`);
         if (celda) {
-            
+            let textContent='';
             let gradiente = defaultColor;
            
             if (h==horaInicio) {
                 gradiente= setLinearGradient(minutoInicio, 'transparent', defaultColor, defaultColor);
-                
+                textContent=(horario.titulo) ? horario.titulo : '';
             }
 
             if (h==horaFin) {
@@ -83,7 +83,8 @@ function dibujarColoreado(horario, fecha, defaultColor){
             bloque.classList.add('resaltado');
             bloque.style.top = '2px';
             bloque.style.bottom = '2px';
-            bloque.textContent = '';
+            bloque.textContent = textContent;
+            bloque.style.fontSize = '12px'; 
 
             //verificar si es excepcion o evento para poder dar click sobre el
             if (defaultColor === 'rgba(255, 0, 0, 0.5)') {

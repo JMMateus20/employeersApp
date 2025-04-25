@@ -42,5 +42,21 @@ class ExcepcionController extends Controller
         ], 200);
     }
 
+
+    public function eliminar($id){
+        $excepcionBD=Excepcion::find($id);
+        try{
+            DB::beginTransaction();
+            $excepcionBD->delete();
+            DB::commit();
+            return response()->json([
+                'message'=>'Excepción eliminada con éxito'
+            ], 200);
+        }catch(\Exception $e){
+            DB::rollBack();
+            return response()->json(['error'=>$e->getMessage()], 500);
+        }
+    }
+
     
 }

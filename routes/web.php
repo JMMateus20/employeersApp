@@ -24,6 +24,7 @@ Route::get('/horarios/get/{id}', [HorarioController::class, 'getHorario'])->name
 
 Route::post('/excepciones/save', [ExcepcionController::class, 'saveExcepcion']);
 Route::get('/excepciones/find/{id}', [ExcepcionController::class, 'verDetalle']);
+Route::delete('/excepciones/delete/{id}', [ExcepcionController::class, 'eliminar']);
 
 
 Route::get('/cumpleanios/getAllMesActual', [CumpleaniosController::class, 'getCumplesMesActual'])->name('cumpleanios.index');
@@ -33,3 +34,5 @@ Route::get('/cumpleanios/getCumples/{mes}', [CumpleaniosController::class, 'getC
 Route::get('/eventos/index', [EventoController::class, 'index'])->name('eventos.index');
 Route::POST('/eventos/save', [EventoController::class, 'save']);
 Route::get('/eventos/find/{id}', [EventoController::class, 'find']);
+Route::delete('/eventos/delete/{id}', [EventoController::class, 'delete']);
+

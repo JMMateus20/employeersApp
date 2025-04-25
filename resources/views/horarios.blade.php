@@ -158,7 +158,11 @@
             <p class="form-control-plaintext" id="campoMotivo"></p>
         </div>
     </div>
+    <div class="modal-footer" id="mfoot">
+        <button class="btnEliminar btn btn-danger btn-sm me-2 rounded-circle"><i class="fa-solid fa-trash"></i></button>
+    </div>
   </div>
+</div>
 </div>
 
 
@@ -312,12 +316,62 @@
                 document.getElementById("campoHoraFin").textContent = responseBody.excepcion.hora_fin;
                 document.getElementById("campoMotivo").textContent = responseBody.excepcion.motivo;
                 
+                const boton = document.querySelector('.btnEliminar');
+                boton.setAttribute('data-id', responseBody.excepcion.id);
+
                 modalDetalleInstance.show();
             }
 
 
         }catch(error){
             console.log(error);
+        }
+    }
+
+    async function eliminarExcepcion(id, modalDetalleInstance){
+        const result=await Swal.fire({
+            title: "Estas seguro?",
+            text: "No podrás revertir esta acción!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Confirmar"
+        });
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Cargando...',
+                html: 'Por favor espera un momento',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            try{
+                const response=await fetch(`/excepciones/delete/${id}`,{
+                    method:'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+                const responseBody=await response.json();
+
+                if (response.ok) {
+                    excepciones=excepciones.filter(e => e.id !== parseInt(id));
+                    limpiarCalendario();
+                    resaltarHorarios();
+                    resaltarExcepciones();
+                    Swal.fire('Excepcion eliminada!', responseBody.message, 'success');
+                    modalDetalleInstance.hide();
+
+                }
+            }catch(error){
+                console.log(error);
+            }
+            
         }
     }
 
@@ -358,6 +412,14 @@
         document.getElementById('btnGuardarExcepcion').addEventListener('click', () => {
             saveExcepcion(modalExcepcionInstance, formExcepcion);
         });
+
+        document.getElementById('mfoot').addEventListener('click', (e) => {
+            if (e.target.closest('.btnEliminar')) {
+                const btn = e.target.closest('.btnEliminar');
+                const id = btn.getAttribute('data-id');
+                eliminarExcepcion(id, modalDetalleInstance);
+            }
+        })
         
         
     });

@@ -175,6 +175,9 @@
     
                 <div id="eventoAsistentes" class="mt-4"></div>
             </div>
+            <div class="modal-footer" id="mfoot">
+                <button class="btnEliminar btn btn-danger btn-sm me-2 rounded-circle"><i class="fa-solid fa-trash"></i></button>
+            </div>
           </div>
         </div>
     </div>
@@ -223,7 +226,18 @@
 
         document.getElementById('btnCloseModal').addEventListener('click', function(){
             cerrarModal(formEvento, modalEventoInstance);
-        })
+        });
+
+        document.getElementById('mfoot').addEventListener('click', function(e){
+            if (e.target.closest('.btnEliminar')) {
+                const btn = e.target.closest('.btnEliminar');
+                const id = btn.getAttribute('data-id');
+                eliminar(id, modalDetalleEventoInstance);
+            }
+            
+            
+        });
+        
 
     });
 
@@ -236,7 +250,8 @@
             const horarios={
                 id: e.id,
                 inicio: e.hora_inicio,
-                fin: e.hora_fin
+                fin: e.hora_fin,
+                titulo: e.titulo
             };
 
             const fecha={
@@ -289,6 +304,10 @@
 
             if (!response.ok) {
                 if (response.status===400) {
+                    if (responseBody.errorMessage) {
+                        Swal.fire('Error', responseBody.errorMessage, 'error');
+                        return;
+                    }
                     const mensajes = Object.values(responseBody.errors)
                         .flat()
                         .map(msg => `• ${msg}`)
@@ -381,11 +400,67 @@
             });
 
             contenedorAsistentes.appendChild(lista);
+
+            const boton = document.querySelector('.btnEliminar');
+            boton.setAttribute('data-id', responseBody.evento.id);
             
             modalDetalleEventoInstance.show();
             
         }catch(error){
             console.log(error);
+        }
+    }
+
+    async function eliminar(id, modalDetalleEventoInstance) {
+        const result=await Swal.fire({
+            title: "Estas seguro?",
+            text: "No podrás revertir esta acción!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Confirmar"
+        });
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Cargando...',
+                html: 'Por favor espera un momento',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            try{
+                const response=await fetch(`/eventos/delete/${id}`, {
+                    method:'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+
+                const responseBody=await response.json();
+
+                if (response.ok) {
+                    eventos=eventos.filter(e => e.id !== parseInt(id));
+                    limpiarCalendario();
+                    dibujarEventos();
+                    Swal.fire({
+                        title: "Eliminado!",
+                        text: responseBody.message,
+                        icon: "success"
+                    });
+
+                    modalDetalleEventoInstance.hide();
+                    
+
+                }
+            }catch(error){
+                console.log(error);
+            }
+        
         }
     }
 </script>
