@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EventoRequest;
+use App\Mail\AvisoAsignacionEventoMail;
 use App\Models\Evento;
 use App\Models\Employee;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class EventoController extends Controller
 {
@@ -40,6 +42,11 @@ class EventoController extends Controller
             ]);
             $eventoNew->asistentes()->attach($req->asistentes);
             DB::commit();
+
+            foreach ($eventoNew->asistentes as $asistente) {
+                Mail::to($asistente->correo)->send(new AvisoAsignacionEventoMail($eventoNew, $asistente));
+            }
+            
 
             return response()->json([
                 'message'=>'Evento registrado con éxito',
